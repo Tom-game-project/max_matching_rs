@@ -23,7 +23,11 @@ struct MatchingGraph{
 }
 
 impl MatchingGraph{
-    fn new(anodes:Vec<Node>,bnodes:Vec<Node>)->Self{
+    fn new(
+        anodes:Vec<Node>,
+        bnodes:Vec<Node>
+    )->Self
+    {
         Self{
             anodes:anodes,
             bnodes:bnodes,
@@ -46,7 +50,12 @@ impl MatchingGraph{
 
     /// # get_other_side
     /// return the other side nodes
-    fn get_other_side(&self,node_id:usize,belonging:bool)->Vec<usize>{
+    fn get_other_side(
+        &self,
+        node_id:usize,
+        belonging:bool
+    )->Vec<usize>
+    {
         if belonging {
             self.sides.iter().filter(|&&(a, _)| a == node_id).map(|&(_, b)| b).collect()
         } else {
@@ -71,7 +80,11 @@ impl MatchingGraph{
     /// # find_unmatching_node
     /// arg `matching` is matched node pair list
     /// This method return unmatch nodes
-    fn find_unmatching_node(&self,matching:Vec<(usize,usize)>,belonging:bool)->Vec<usize>{
+    fn find_unmatching_node(
+        &self,matching:Vec<(usize,usize)>,
+        belonging:bool
+    )->Vec<usize>
+    {
         //python の実装よりも綺麗にする
         if belonging{
             //右側
@@ -96,11 +109,20 @@ impl MatchingGraph{
 
     /// # find_matching_node
     /// あまり使わないため保留
-    fn find_matching_node(&self,matching:Vec<(usize,usize)>,belonging:bool)->Vec<usize>{
+    fn find_matching_node(
+        &self,
+        matching:Vec<(usize,usize)>,
+        belonging:bool
+    )->Vec<usize>
+    {
         todo!()
     }
 
-    fn get_incr_roads2(&mut self,start_node_id:usize)->Vec<Vec<usize>>{
+    fn get_incr_roads2(
+        &mut self,
+        start_node_id:usize
+    )->Vec<Vec<usize>>
+    {
         
         //それぞれの変数の初期化
         self.incr_roads=Vec::new();
@@ -123,7 +145,12 @@ impl MatchingGraph{
     /// node引数はマッチしていないものでanodesに属するものを選ぶ必要がある
     /// 
     /// 返り値は増ないが、この関数の実行直後のself.incr_roadsは増加道を複数含んだVecである
-    fn get_incr_roads_process(&mut self, node_id: usize, belonging: bool, flag: bool) {
+    fn get_incr_roads_process(
+        &mut self,
+        node_id: usize,
+        belonging: bool,
+        flag: bool
+    ) {
         let road = self.incr_road.clone();
         let marked_a_local = self.marked_anode.clone();
         let marked_b_local = self.marked_bnode.clone();
@@ -138,7 +165,7 @@ impl MatchingGraph{
                 .collect();
     
             if !opposite.is_empty() {
-                self.marked_bnode.append(&mut opposite);
+                self.marked_bnode.append(&mut opposite);//Vecの連結
                 for &i in &opposite {
                     self.incr_road.push(i);
                     self.get_incr_roads_process(i, true, true);
@@ -157,7 +184,7 @@ impl MatchingGraph{
                 .collect();
     
             if !opposite.is_empty() {
-                self.marked_anode.append(&mut opposite);
+                self.marked_anode.append(&mut opposite);//Vecの連結
                 for &i in &opposite {
                     self.incr_road.push(i);
                     self.get_incr_roads_process(i, false, true);
@@ -169,6 +196,42 @@ impl MatchingGraph{
             }
         }
     }
+
+    /// # incr_side_iter
+    /// スタートノードと増加道Vecを入力すると辺の情報になったVecが返却されます
+    fn incr_side_iter(
+        &mut self,
+        start_node_id:usize,
+        mut incr_list:Vec<usize>
+    )->Vec<(usize,usize)>
+    {
+        let mut incr_road_map = vec![start_node_id];
+        incr_road_map.append(&mut incr_list);
+        let rlist :Vec<(usize,usize)>= incr_road_map[0..incr_road_map.len()-1]
+        .iter()
+        .enumerate()
+        .map(|(i,&j)|
+        if i%2==0 {
+            (j,incr_road_map[i+1])
+        }else{
+            (incr_road_map[i+1],j)
+        }).collect();
+        rlist
+    }
+
+    fn new_matching_set_creator(
+        matching            :Vec<(usize,usize)>,
+        remove_matching_set :Vec<(usize,usize)>,
+        add_matching_set    :Vec<(usize,usize)>
+    )                      ->Vec<(usize,usize)>{
+
+        let mut rlist:Vec<(usize,usize)> = matching
+            .iter()
+            .filter(|&&(a,b)|!remove_matching_set.contains(&(a,b)))
+            .cloned()
+            .collect();
+        todo!();
+    }
 }
 
 
@@ -179,8 +242,8 @@ mod tests {
 
     #[test]
     fn test0() {
-        ///staff_data.0 => name
-        ///staff_data.1 => capable
+        // staff_data.0 => name
+        // staff_data.1 => capable
         let staff_data = vec![
             ("1".to_string(),vec![
                                     "B".to_string(),
@@ -236,7 +299,16 @@ mod tests {
             }
         ).collect();
         
-        let mgraph = MatchingGraph::new(staff_nodes, works_nodes);
+        let mut mgraph = MatchingGraph::new(staff_nodes, works_nodes);
+
+        for (i, j) in staff_data.iter().enumerate(){
+            for k in j.1.clone(){
+                let indexof = works_data.iter().position(|l| l == &k).unwrap();
+                mgraph.add_side(i, indexof);
+            }
+        }
+
+
 
     }
 }
