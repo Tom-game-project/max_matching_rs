@@ -302,18 +302,22 @@ impl MatchingGraph{
                 let incr_road = self.incr_side_iter(
                     unmatching_list[0],
                     &incriment[0]);
-                let remove_matching_set:Vec<(usize,usize)> = incr_road
-                .iter()
-                .enumerate()
-                .filter(|&(i,&_)|i%2==1)
-                .map(|(_,&j)|j)
-                .collect();
-                let add_matching_set:Vec<(usize,usize)> = incr_road
-                .iter()
-                .enumerate()
-                .filter(|&(i,&_)|i%2==0)
-                .map(|(_,&j)|j)
-                .collect();
+                //let remove_matching_set:Vec<(usize,usize)> = incr_road
+                //.iter()
+                //.enumerate()
+                //.filter(|&(i,&_)|i%2==1)
+                //.map(|(_,&j)|j)
+                //.collect();
+                
+                let remove_matching_set = incr_road.iter().skip(1).step_by(2).map(|&i|i).collect();
+                
+                let add_matching_set= incr_road.iter().step_by(2).map(|&i|i).collect();
+                //let add_matching_set:Vec<(usize,usize)> = incr_road
+                //.iter()
+                //.enumerate()
+                //.filter(|&(i,&_)|i%2==0)
+                //.map(|(_,&j)|j)
+                //.collect();
                 
                 self.matching_set = self.new_matching_set_creator(
                     self.matching_set.clone(),
