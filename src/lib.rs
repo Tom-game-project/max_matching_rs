@@ -144,7 +144,6 @@ impl MatchingGraph{
         self.marked_bnode=Vec::new();
 
         self.marked_anode.push(start_node_id);
-        println!("スタートノード{}",start_node_id);
         self.get_incr_roads_process(
             start_node_id,
             false,
@@ -202,9 +201,6 @@ impl MatchingGraph{
                 .filter(|&k| !self.marked_bnode.contains(&k))
                 .collect();
 
-            println!("左側から見た右ノード{:?}",opposite);
-
-
             if !opposite.is_empty() {
                 for &i in &opposite {
                     self.marked_bnode.extend(&opposite);//Vecの連結
@@ -225,8 +221,6 @@ impl MatchingGraph{
                 .filter(|&j| self.matching_set.contains(&(j, next_id)))
                 .filter(|&k| !self.marked_anode.contains(&k))
                 .collect();
-
-            println!("右側からみた左ノード{:?}",opposite);
 
             if !opposite.is_empty() {
                 for &i in &opposite {
@@ -251,7 +245,7 @@ impl MatchingGraph{
     )->Vec<(usize,usize)>
     {
         let mut incr_road_map = vec![start_node_id];
-        incr_road_map.extend(incr_list.clone());
+        incr_road_map.extend(incr_list);
         let rlist :Vec<(usize,usize)>= incr_road_map[0..incr_road_map.len()-1]
         .iter()
         .enumerate()
@@ -266,7 +260,7 @@ impl MatchingGraph{
 
     fn new_matching_set_creator(
         &self,
-        matching             :Vec<(usize,usize)>,
+        matching             :&Vec<(usize,usize)>,
         remove_matching_set  :Vec<(usize,usize)>,
         mut add_matching_set :Vec<(usize,usize)>
     )                       ->Vec<(usize,usize)>{
@@ -288,7 +282,6 @@ impl MatchingGraph{
             }
                 
             let mut incriment:Vec<Vec<usize>> = self.get_incr_roads(unmatching_list[0]);
-            println!("incr {:?}",incriment); 
             incriment=incriment
                 .iter()
                 .filter(|&i|i.len()>2)
@@ -319,13 +312,45 @@ impl MatchingGraph{
                 .collect();
                 
                 self.matching_set = self.new_matching_set_creator(
-                    self.matching_set.clone(),
+                    &self.matching_set,
                     remove_matching_set,
                     add_matching_set
                 );
             }
 
         }
+    }
+
+    ///maxかどうか関係なくマッチングを返却します
+    fn max_matching2(&mut self)->Vec<Vec<(usize,usize)>>{
+        let mut rlist = Vec::new();
+        self.init_matching();
+        let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
+        
+        for i in unmatching_list{
+            let increment = self.get_incr_roads(i);
+            for inc in increment{
+                let incr_road = self.incr_side_iter(i, &inc);
+                let remove_matching_set = incr_road
+                .iter()
+                .skip(1)
+                .step_by(2)
+                .map(|&i|i)
+                .collect();
+                let add_matching_set = incr_road
+                .iter()
+                .step_by(2)
+                .map(|&i|i)
+                .collect();
+                let changed_matching = self.new_matching_set_creator(
+                    &self.matching_set,
+                    remove_matching_set, 
+                    add_matching_set
+                );
+                rlist.push(changed_matching);
+            }
+        }
+        return rlist;
     }
 }
 
@@ -407,6 +432,11 @@ mod tests {
             "最大マッチング {:?}",
             mgraph.max_matching()
         );
+
+        println!(
+            "{:?}",
+            mgraph.max_matching2()
+        )
 
     }
 }
