@@ -206,8 +206,8 @@ impl MatchingGraph{
 
 
             if !opposite.is_empty() {
-                self.marked_bnode.append(&mut opposite);//Vecの連結
                 for &i in &opposite {
+                    self.marked_bnode.extend(&opposite);//Vecの連結
                     self.incr_road.push(i);
                     self.get_incr_roads_process(i, true, true);
                     self.incr_road = road.clone();
@@ -215,6 +215,8 @@ impl MatchingGraph{
                 }
             } else if flag {
                 self.incr_roads.push(self.incr_road.clone());
+            }else{
+                println!("{:?}",self.incr_road);
             }
         } else {
             let mut opposite: Vec<usize> = self.get_other_side(next_id, true);
@@ -227,8 +229,8 @@ impl MatchingGraph{
             println!("右側からみた左ノード{:?}",opposite);
 
             if !opposite.is_empty() {
-                self.marked_anode.append(&mut opposite);//Vecの連結
                 for &i in &opposite {
+                    self.marked_anode.extend( &opposite);//Vecの連結
                     self.incr_road.push(i);
                     self.get_incr_roads_process(i, false, true);
                     self.incr_road = road.clone();
@@ -281,12 +283,12 @@ impl MatchingGraph{
         self.init_matching();
         loop {
             let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
-            println!("{:?}",unmatching_list);
             if unmatching_list.is_empty(){
                 return self.matching_set.clone();
             }
                 
             let mut incriment:Vec<Vec<usize>> = self.get_incr_roads(unmatching_list[0]);
+            println!("incr {:?}",incriment); 
             incriment=incriment
                 .iter()
                 .filter(|&i|i.len()>2)
@@ -294,7 +296,6 @@ impl MatchingGraph{
                 .collect();
 
 
-            println!("incr {:?}",incriment); 
 
             if incriment.is_empty(){
                 return self.matching_set.clone();
@@ -302,22 +303,20 @@ impl MatchingGraph{
                 let incr_road = self.incr_side_iter(
                     unmatching_list[0],
                     &incriment[0]);
-                //let remove_matching_set:Vec<(usize,usize)> = incr_road
-                //.iter()
-                //.enumerate()
-                //.filter(|&(i,&_)|i%2==1)
-                //.map(|(_,&j)|j)
-                //.collect();
                 
-                let remove_matching_set = incr_road.iter().skip(1).step_by(2).map(|&i|i).collect();
+
+                let remove_matching_set = incr_road
+                .iter()
+                .skip(1)
+                .step_by(2)
+                .map(|&i|i)
+                .collect();
                 
-                let add_matching_set= incr_road.iter().step_by(2).map(|&i|i).collect();
-                //let add_matching_set:Vec<(usize,usize)> = incr_road
-                //.iter()
-                //.enumerate()
-                //.filter(|&(i,&_)|i%2==0)
-                //.map(|(_,&j)|j)
-                //.collect();
+                let add_matching_set= incr_road
+                .iter()
+                .step_by(2)
+                .map(|&i|i)
+                .collect();
                 
                 self.matching_set = self.new_matching_set_creator(
                     self.matching_set.clone(),
@@ -405,7 +404,7 @@ mod tests {
         }
 
         println!(
-            "{:?}",
+            "最大マッチング {:?}",
             mgraph.max_matching()
         );
 
