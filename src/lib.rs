@@ -1,15 +1,10 @@
 use std::collections::HashMap;
 
 
-struct Node{
-    id:usize,
-    //data:HashMap<String,String>
-}
-
 ///二部グラフに関して有効です
 struct MatchingGraph{
-    anodes:Vec<Node>, // 0 頂点集合左
-    bnodes:Vec<Node>, // 1 頂点集合右
+    anodes:Vec<usize>, // 0 頂点集合左
+    bnodes:Vec<usize>, // 1 頂点集合右
 
     sides:Vec<(usize,usize)>, //辺
     matching_set:Vec<(usize,usize)>,
@@ -24,8 +19,8 @@ struct MatchingGraph{
 
 impl MatchingGraph{
     fn new(
-        anodes:Vec<Node>,
-        bnodes:Vec<Node>
+        anodes:Vec<usize>,
+        bnodes:Vec<usize>
     )->Self
     {
         Self{
@@ -75,10 +70,10 @@ impl MatchingGraph{
     /// After all settings are complete, initialize the matching set
     fn init_matching(&mut self){
         self.matching_set = Vec::new();//ここの初期化は絶対
-        for i in &self.anodes{
-            for j in self.get_other_side(i.id,false){
+        for &i in &self.anodes{
+            for j in self.get_other_side(i,false){
                 if self.matching_set.iter().all(|&(_,a)|a!=j){
-                    self.matching_set.push((i.id,j));
+                    self.matching_set.push((i,j));
                     break;
                 }
             }
@@ -101,18 +96,18 @@ impl MatchingGraph{
                 .iter()
                 .map(|&(_,i)|i).
                 collect();
-            return self.bnodes.iter()
-            .map(|i|i.id)
-            .filter(|&i| !matching_list.contains(&i)).collect();
+            self.bnodes.iter()
+            .map(|&i|i)
+            .filter(|&i| !matching_list.contains(&i)).collect()
         }else{
             //左側
             let matching_list :Vec<usize>= matching
                 .iter()
-                .map(|&(_,i)|i).
+                .map(|&(i,_)|i).
                 collect();
-            return self.anodes.iter()
-            .map(|i|i.id)
-            .filter(|&i| !matching_list.contains(&i)).collect();
+            self.anodes.iter()
+            .map(|&i|i)
+            .filter(|&i| !matching_list.contains(&i)).collect()
         }
     }
 
@@ -210,9 +205,9 @@ impl MatchingGraph{
                     self.marked_anode = marked_a_local.clone();
                 }
             } else if flag {
-                self.incr_roads.push(self.incr_road.clone());
+                //self.incr_roads.push(self.incr_road.clone());
             }else{
-                println!("{:?}",self.incr_road);
+                //println!("{:?}",self.incr_road);
             }
         } else {
             let mut opposite: Vec<usize> = self.get_other_side(next_id, true);
@@ -396,27 +391,18 @@ mod tests {
             "F".to_string(),
         ];
         
-        let staff_nodes:Vec<Node> = staff_data
+        let staff_nodes:Vec<usize> = staff_data
         .iter()
         .enumerate()
         .map(|(i,_)|{
-            Node{
-                id:i,
-                //data:{
-                //    let mut map = HashMap::new();
-                //    map.insert("name".to_string(), j.0.clone());
-                //    map
-                //}
-            }
+            i
         }).collect();
         
-        let works_nodes:Vec<Node> = works_data
+        let works_nodes:Vec<usize> = works_data
         .iter()
         .enumerate()
         .map(|(i,_)|
-            Node{
-                id:i
-            }
+            i
         ).collect();
         
         let mut mgraph = MatchingGraph::new(staff_nodes, works_nodes);
@@ -438,5 +424,71 @@ mod tests {
             mgraph.max_matching2()
         )
 
+    }
+    #[test]
+    fn test1(){
+        use std::fs::File;
+        use std::io::prelude::*;
+        use serde::{Serialize, Deserialize};
+    
+        #[derive(Serialize, Deserialize, Debug)]
+        struct member{
+            name:String,
+            capable:Vec<String>
+        }
+
+        let filename0 ="../data/02/staff.json"; 
+        let filename1 = "../data/02/works.json";
+        println!("In file {}", filename0);
+        println!("In file {}", filename1);
+    
+        // ファイルが見つかりませんでした
+        let mut f0 = File::open(filename0).expect("file not found");
+        let mut f1 = File::open(filename1).expect("file not found");
+        let mut contents0 = String::new();
+        let mut contents1 = String::new();
+        f0.read_to_string(&mut contents0)
+            // ファイルの読み込み中に問題がありました
+            .expect("something went wrong reading the file");
+        f1.read_to_string(&mut contents1)
+            // ファイルの読み込み中に問題がありました
+            .expect("something went wrong reading the file");
+        let deserialized0 :Vec<member>= serde_json::from_str(&contents0).unwrap();
+        let deserialized1 :Vec<String>= serde_json::from_str(&contents1).unwrap();
+        // テキストは\n{}です
+        for data in &deserialized0 {
+
+            println!("{:?}", data);
+        }
+        for work in &deserialized1{
+            println!("{:?}", work);
+        }
+
+        let staff_nodes:Vec<usize> = deserialized0
+        .iter()
+        .enumerate()
+        .map(|(i,_)|{
+            i
+        }).collect();
+        
+        let works_nodes:Vec<usize> = deserialized1
+        .iter()
+        .enumerate()
+        .map(|(i,_)|
+            i
+        ).collect();
+        
+        let mut mgraph = MatchingGraph::new(staff_nodes, works_nodes);
+
+        let mut index = 0;
+        for i in &deserialized0{
+            for k in &i.capable{
+                let indexof = deserialized1.iter().position(|l| l == k).unwrap();
+                mgraph.add_side(index, indexof);
+            }
+            index+=1;
+        }
+
+        println!("{:?}",mgraph.max_matching());
     }
 }
