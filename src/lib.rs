@@ -1,8 +1,9 @@
 use std::collections::HashMap;
-
+use wasm_bindgen::prelude::*;
 
 ///二部グラフに関して有効です
-struct MatchingGraph{
+#[wasm_bindgen]
+pub struct MatchingGraph{
     anodes:Vec<usize>, // 0 頂点集合左
     bnodes:Vec<usize>, // 1 頂点集合右
 
@@ -17,8 +18,10 @@ struct MatchingGraph{
     marked_bnode:Vec<usize>
 }
 
+#[wasm_bindgen]
 impl MatchingGraph{
-    fn new(
+    #[wasm_bindgen(constructor)]
+    pub fn new(
         anodes:Vec<usize>,
         bnodes:Vec<usize>
     )->Self
@@ -39,7 +42,8 @@ impl MatchingGraph{
         }
     }
     /// # add_side
-    fn add_side(&mut self,anode:usize,bnode:usize){
+    #[wasm_bindgen(js_name = addSide)]
+    pub fn add_side(&mut self,anode:usize,bnode:usize){
         self.sides.push((anode,bnode));
     }
 
@@ -268,12 +272,13 @@ impl MatchingGraph{
         rlist
     }
 
-    fn max_matching(&mut self)->Vec<(usize,usize)>{
+    #[wasm_bindgen(js_name = maxMatching)]
+    pub fn max_matching(&mut self)->Vec<(usize,usize)>{
         self.init_matching();
         loop {
             let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
             if unmatching_list.is_empty(){
-                return self.matching_set.clone();
+                return JsValue::from_str(&serde_json::to_string(&self.matching_set).unwrap());//仮止め
             }
                 
             let mut incriment:Vec<Vec<usize>> = self.get_incr_roads(unmatching_list[0]);
@@ -286,7 +291,7 @@ impl MatchingGraph{
 
 
             if incriment.is_empty(){
-                return self.matching_set.clone();
+                return JsValue::from_str(&serde_json::to_string(&self.matching_set).unwrap());//仮止め
             }else{
                 let incr_road = self.incr_side_iter(
                     unmatching_list[0],
@@ -349,6 +354,8 @@ impl MatchingGraph{
     }
 }
 
+
+//testをスムーズにしたいのでwasm用関数に分割しています
 
 
 #[cfg(test)]
