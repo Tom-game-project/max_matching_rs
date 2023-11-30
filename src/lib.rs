@@ -273,7 +273,7 @@ impl MatchingGraph{
     }
 
     #[wasm_bindgen(js_name = maxMatching)]
-    pub fn max_matching(&mut self)->Vec<(usize,usize)>{
+    pub fn max_matching(&mut self)->JsValue{
         self.init_matching();
         loop {
             let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
@@ -322,7 +322,8 @@ impl MatchingGraph{
     }
 
     ///maxかどうか関係なくマッチングを返却します
-    fn max_matching2(&mut self)->Vec<Vec<(usize,usize)>>{
+    #[wasm_bindgen(js_name = maxMatching2)]
+    pub fn max_matching2(&mut self)->JsValue{
         let mut rlist = Vec::new();
         self.init_matching();
         let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
@@ -350,7 +351,63 @@ impl MatchingGraph{
                 rlist.push(changed_matching);
             }
         }
-        return rlist;
+        return JsValue::from_str(&serde_json::to_string(&rlist).unwrap());//仮止め
+    }
+
+    /// # exchangeable
+    /// 2つの左側のノードを引数にとる
+    /// お互いにノードを交換できるかを調べる
+    #[wasm_bindgen]
+    pub fn exchangeable(&self,leftnode0:usize,leftnode1:usize)->bool{
+        let capable0:Vec<usize> = self.sides.iter().filter(|&&a|a.0==leftnode0).map(|&a|a.1).collect();
+        let capable1:Vec<usize>= self.sides.iter().filter(|&&a|a.0==leftnode1).map(|&a|a.1).collect();
+        //現在のマッチ 0 <= len(array) <= 1　を満たすことが期待される
+        //すなわちマッチしていないかマッチしているかのどちらか一方の状態をとっているはずだと期待できる
+        let match0:Vec<usize> = self.matching_set.iter().filter(|&&a|a.0==leftnode0).map(|&(a,b)|b).collect();
+        let match1:Vec<usize>= self.matching_set.iter().filter(|&&a|a.0==leftnode1).map(|&(a,b)|b).collect();
+        let work0;
+        let work1;
+        let l0b;
+        let l1b;        
+        match match0.len() {
+            0=>{
+                work0 = None;
+            }
+            1=>{
+                work0 = Some(match0[0]);
+            }
+            _=>{
+                todo!()//ここはエラー
+            }
+        }
+        match match1.len() {
+            0=>{
+                work1 = None;
+            }
+            1=>{
+                work1 = Some(match1[0]);
+            }
+            _=>{
+                todo!()//ここはエラー
+            }
+        }
+        match work0 {
+            None=>{
+                l0b = true;
+            }
+            Some(work)=>{
+                l0b = capable0.contains(&work);
+            }
+        }
+        match work1{
+            None=>{
+                l1b = true;
+            }
+            Some(work)=>{
+                l1b = capable1.contains(&work);
+            }
+        }
+        l0b&&l1b
     }
 }
 
@@ -497,5 +554,9 @@ mod tests {
         }
 
         println!("{:?}",mgraph.max_matching());
+    }
+    #[test]
+    fn test2(){
+        //変換のテスト
     }
 }
