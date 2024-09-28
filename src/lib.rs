@@ -17,8 +17,8 @@ pub struct MatchingGraph {
 impl MatchingGraph {
     pub fn new(anodes: Vec<usize>, bnodes: Vec<usize>) -> Self {
         Self {
-            anodes: anodes,
-            bnodes: bnodes,
+            anodes,
+            bnodes,
 
             sides: Vec::new(),
 
@@ -80,7 +80,7 @@ impl MatchingGraph {
             let matching_list: Vec<usize> = matching.iter().map(|&(_, i)| i).collect();
             self.bnodes
                 .iter()
-                .map(|&i| i)
+                .copied()
                 .filter(|&i| !matching_list.contains(&i))
                 .collect()
         } else {
@@ -88,7 +88,7 @@ impl MatchingGraph {
             let matching_list: Vec<usize> = matching.iter().map(|&(i, _)| i).collect();
             self.anodes
                 .iter()
-                .map(|&i| i)
+                .copied()
                 .filter(|&i| !matching_list.contains(&i))
                 .collect()
         }
@@ -241,10 +241,8 @@ impl MatchingGraph {
                 return self.matching_set.clone();
             } else {
                 let incr_road = self.incr_side_iter(unmatching_list[0], &incriment[0]);
-
-                let remove_matching_set = incr_road.iter().skip(1).step_by(2).map(|&i| i).collect();
-
-                let add_matching_set = incr_road.iter().step_by(2).map(|&i| i).collect();
+                let remove_matching_set = incr_road.iter().skip(1).step_by(2).copied().collect();
+                let add_matching_set = incr_road.iter().step_by(2).copied().collect();
 
                 self.matching_set = self.new_matching_set_creator(
                     &self.matching_set,
@@ -265,8 +263,8 @@ impl MatchingGraph {
             let increment = self.get_incr_roads(i);
             for inc in increment {
                 let incr_road = self.incr_side_iter(i, &inc);
-                let remove_matching_set = incr_road.iter().skip(1).step_by(2).map(|&i| i).collect();
-                let add_matching_set = incr_road.iter().step_by(2).map(|&i| i).collect();
+                let remove_matching_set = incr_road.iter().skip(1).step_by(2).copied().collect();
+                let add_matching_set = incr_road.iter().step_by(2).copied().collect();
                 let changed_matching = self.new_matching_set_creator(
                     &self.matching_set,
                     remove_matching_set,
@@ -275,7 +273,7 @@ impl MatchingGraph {
                 rlist.push(changed_matching);
             }
         }
-        return rlist;
+        rlist
     }
 
     /// # exchangeable
@@ -300,18 +298,16 @@ impl MatchingGraph {
             .matching_set
             .iter()
             .filter(|&&a| a.0 == leftnode0)
-            .map(|&(a, b)| b)
+            .map(|&(_, b)| b)
             .collect();
         let match1: Vec<usize> = self
             .matching_set
             .iter()
             .filter(|&&a| a.0 == leftnode1)
-            .map(|&(a, b)| b)
+            .map(|&(_, b)| b)
             .collect();
         let work0;
         let work1;
-        let l0b;
-        let l1b;
         match match0.len() {
             0 => {
                 work0 = None;
@@ -334,22 +330,16 @@ impl MatchingGraph {
                 todo!() //ここはエラー
             }
         }
-        match work0 {
-            None => {
-                l0b = true;
-            }
-            Some(work) => {
-                l0b = capable0.contains(&work);
-            }
-        }
-        match work1 {
-            None => {
-                l1b = true;
-            }
-            Some(work) => {
-                l1b = capable1.contains(&work);
-            }
-        }
+
+        let l0b = match work0 {
+            None => true,
+            Some(work) => capable0.contains(&work),
+        };
+
+        let l1b = match work1 {
+            None => true,
+            Some(work) => capable1.contains(&work),
+        };
         l0b && l1b
     }
 }
