@@ -1,3 +1,7 @@
+// enum MatchingError {
+//     MatchingErr();
+// }
+
 ///二部グラフに関して有効です
 pub struct MatchingGraph {
     anodes: Vec<usize>, // 0 頂点集合左
@@ -297,30 +301,20 @@ impl MatchingGraph {
             .filter(|&&a| a.0 == leftnode1)
             .map(|&(_, b)| b)
             .collect();
-        let work0;
-        let work1;
-        match match0.len() {
-            0 => {
-                work0 = None;
-            }
-            1 => {
-                work0 = Some(match0[0]);
-            }
+        let work0 = match match0.len() {
+            0 => None,
+            1 => Some(match0[0]),
             _ => {
                 todo!() //ここはエラー
             }
-        }
-        match match1.len() {
-            0 => {
-                work1 = None;
-            }
-            1 => {
-                work1 = Some(match1[0]);
-            }
+        };
+        let work1 = match match1.len() {
+            0 => None,
+            1 => Some(match1[0]),
             _ => {
                 todo!() //ここはエラー
             }
-        }
+        };
 
         let l0b = match work0 {
             None => true,
