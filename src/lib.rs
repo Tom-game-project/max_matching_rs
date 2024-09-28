@@ -19,18 +19,15 @@ impl MatchingGraph {
         Self {
             anodes,
             bnodes,
-
             sides: Vec::new(),
-
             matching_set: Vec::new(),
-
             incr_roads: Vec::new(),
             incr_road: Vec::new(),
-
             marked_anode: Vec::new(),
             marked_bnode: Vec::new(),
         }
     }
+
     /// # add_side
     pub fn add_side(&mut self, anode: usize, bnode: usize) {
         self.sides.push((anode, bnode));
@@ -107,10 +104,8 @@ impl MatchingGraph {
         //変数の初期化
         self.incr_roads = Vec::new();
         self.incr_road = Vec::new();
-
         self.marked_anode = Vec::new();
         self.marked_bnode = Vec::new();
-
         self.marked_anode.push(start_node_id);
         self.get_incr_roads_process(start_node_id, false, true);
         self.incr_roads.clone()
@@ -123,13 +118,10 @@ impl MatchingGraph {
         //それぞれの変数の初期化
         self.incr_roads = Vec::new();
         self.incr_road = Vec::new();
-
         self.marked_anode = Vec::new();
         self.marked_bnode = Vec::new();
-
         self.marked_anode.push(start_node_id);
         self.get_incr_roads_process(start_node_id, false, false);
-
         self.incr_roads.clone()
     }
 
@@ -151,7 +143,6 @@ impl MatchingGraph {
                 .filter(|&j| !self.matching_set.contains(&(next_id, j)))
                 .filter(|&k| !self.marked_bnode.contains(&k))
                 .collect();
-
             if !opposite.is_empty() {
                 for &i in &opposite {
                     self.marked_bnode.extend(&opposite); //Vecの連結
@@ -233,9 +224,9 @@ impl MatchingGraph {
             if unmatching_list.is_empty() {
                 return self.matching_set.clone();
             }
-
             let mut incriment: Vec<Vec<usize>> = self.get_incr_roads(unmatching_list[0]);
-            incriment = incriment.iter().filter(|&i| i.len() > 2).cloned().collect();
+            // incriment = incriment.iter().filter(|&i| i.len() > 2).cloned().collect();
+            incriment.retain(|i| i.len() > 2);
 
             if incriment.is_empty() {
                 return self.matching_set.clone();
