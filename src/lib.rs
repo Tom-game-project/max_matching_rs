@@ -1,8 +1,5 @@
-use std::collections::HashMap;
-use wasm_bindgen::prelude::*;
 
 ///二部グラフに関して有効です
-#[wasm_bindgen]
 pub struct MatchingGraph{
     anodes:Vec<usize>, // 0 頂点集合左
     bnodes:Vec<usize>, // 1 頂点集合右
@@ -18,9 +15,7 @@ pub struct MatchingGraph{
     marked_bnode:Vec<usize>
 }
 
-#[wasm_bindgen]
 impl MatchingGraph{
-    #[wasm_bindgen(constructor)]
     pub fn new(
         anodes:Vec<usize>,
         bnodes:Vec<usize>
@@ -42,7 +37,6 @@ impl MatchingGraph{
         }
     }
     /// # add_side
-    #[wasm_bindgen(js_name = addSide)]
     pub fn add_side(&mut self,anode:usize,bnode:usize){
         self.sides.push((anode,bnode));
     }
@@ -272,13 +266,12 @@ impl MatchingGraph{
         rlist
     }
 
-    #[wasm_bindgen(js_name = maxMatching)]
-    pub fn max_matching(&mut self)->JsValue{
+    pub fn max_matching(&mut self) -> Vec<(usize,usize)>{
         self.init_matching();
         loop {
             let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
             if unmatching_list.is_empty(){
-                return JsValue::from_str(&serde_json::to_string(&self.matching_set).unwrap());//仮止め
+                return self.matching_set.clone();
             }
                 
             let mut incriment:Vec<Vec<usize>> = self.get_incr_roads(unmatching_list[0]);
@@ -291,7 +284,7 @@ impl MatchingGraph{
 
 
             if incriment.is_empty(){
-                return JsValue::from_str(&serde_json::to_string(&self.matching_set).unwrap());//仮止め
+                return self.matching_set.clone();
             }else{
                 let incr_road = self.incr_side_iter(
                     unmatching_list[0],
@@ -322,8 +315,7 @@ impl MatchingGraph{
     }
 
     ///maxかどうか関係なくマッチングを返却します
-    #[wasm_bindgen(js_name = maxMatching2)]
-    pub fn max_matching2(&mut self)->JsValue{
+    pub fn max_matching2(&mut self)->Vec<Vec<(usize, usize)>>{
         let mut rlist = Vec::new();
         self.init_matching();
         let unmatching_list = self.find_unmatching_node(&self.matching_set, false);
@@ -351,13 +343,12 @@ impl MatchingGraph{
                 rlist.push(changed_matching);
             }
         }
-        return JsValue::from_str(&serde_json::to_string(&rlist).unwrap());//仮止め
+        return rlist;
     }
 
     /// # exchangeable
     /// 2つの左側のノードを引数にとる
     /// お互いにノードを交換できるかを調べる
-    #[wasm_bindgen]
     pub fn exchangeable(&self,leftnode0:usize,leftnode1:usize)->bool{
         let capable0:Vec<usize> = self.sides.iter().filter(|&&a|a.0==leftnode0).map(|&a|a.1).collect();
         let capable1:Vec<usize>= self.sides.iter().filter(|&&a|a.0==leftnode1).map(|&a|a.1).collect();
@@ -414,149 +405,3 @@ impl MatchingGraph{
 
 //testをスムーズにしたいのでwasm用関数に分割しています
 
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test0() {
-        // staff_data.0 => name
-        // staff_data.1 => capable
-        let staff_data = vec![
-            ("1".to_string(),vec![
-                                    "B".to_string(),
-                                    "D".to_string()
-                                ]),
-            ("2".to_string(),vec![
-                                    "A".to_string(),
-                                    "C".to_string(),
-                                    "E".to_string()
-                                ]),
-            ("3".to_string(),vec![
-                                    "B".to_string()
-                                ]),
-            ("4".to_string(),vec![
-                                    "D".to_string(),
-                                    "E".to_string(),
-                                    "F".to_string()
-                                ]),
-            ("5".to_string(),vec![
-                                    "B".to_string(),
-                                    "D".to_string()
-                                ]),
-        ];
-        let works_data = vec![
-            "A".to_string(),
-            "B".to_string(),
-            "C".to_string(),
-            "D".to_string(),
-            "E".to_string(),
-            "F".to_string(),
-        ];
-        
-        let staff_nodes:Vec<usize> = staff_data
-        .iter()
-        .enumerate()
-        .map(|(i,_)|{
-            i
-        }).collect();
-        
-        let works_nodes:Vec<usize> = works_data
-        .iter()
-        .enumerate()
-        .map(|(i,_)|
-            i
-        ).collect();
-        
-        let mut mgraph = MatchingGraph::new(staff_nodes, works_nodes);
-
-        for (i, j) in staff_data.iter().enumerate(){
-            for k in j.1.clone(){
-                let indexof = works_data.iter().position(|l| l == &k).unwrap();
-                mgraph.add_side(i, indexof);
-            }
-        }
-
-        println!(
-            "最大マッチング {:?}",
-            mgraph.max_matching()
-        );
-
-        println!(
-            "{:?}",
-            mgraph.max_matching2()
-        )
-
-    }
-    #[test]
-    fn test1(){
-        use std::fs::File;
-        use std::io::prelude::*;
-        use serde::{Serialize, Deserialize};
-    
-        #[derive(Serialize, Deserialize, Debug)]
-        struct member{
-            name:String,
-            capable:Vec<String>
-        }
-
-        let filename0 ="../data/02/staff.json"; 
-        let filename1 = "../data/02/works.json";
-        println!("In file {}", filename0);
-        println!("In file {}", filename1);
-    
-        // ファイルが見つかりませんでした
-        let mut f0 = File::open(filename0).expect("file not found");
-        let mut f1 = File::open(filename1).expect("file not found");
-        let mut contents0 = String::new();
-        let mut contents1 = String::new();
-        f0.read_to_string(&mut contents0)
-            // ファイルの読み込み中に問題がありました
-            .expect("something went wrong reading the file");
-        f1.read_to_string(&mut contents1)
-            // ファイルの読み込み中に問題がありました
-            .expect("something went wrong reading the file");
-        let deserialized0 :Vec<member>= serde_json::from_str(&contents0).unwrap();
-        let deserialized1 :Vec<String>= serde_json::from_str(&contents1).unwrap();
-        // テキストは\n{}です
-        for data in &deserialized0 {
-
-            println!("{:?}", data);
-        }
-        for work in &deserialized1{
-            println!("{:?}", work);
-        }
-
-        let staff_nodes:Vec<usize> = deserialized0
-        .iter()
-        .enumerate()
-        .map(|(i,_)|{
-            i
-        }).collect();
-        
-        let works_nodes:Vec<usize> = deserialized1
-        .iter()
-        .enumerate()
-        .map(|(i,_)|
-            i
-        ).collect();
-        
-        let mut mgraph = MatchingGraph::new(staff_nodes, works_nodes);
-
-        let mut index = 0;
-        for i in &deserialized0{
-            for k in &i.capable{
-                let indexof = deserialized1.iter().position(|l| l == k).unwrap();
-                mgraph.add_side(index, indexof);
-            }
-            index+=1;
-        }
-
-        println!("{:?}",mgraph.max_matching());
-    }
-    #[test]
-    fn test2(){
-        //変換のテスト
-    }
-}
