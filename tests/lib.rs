@@ -21,7 +21,7 @@ mod tests {
             ),
             ("5".to_string(), vec!["B".to_string(), "D".to_string()]),
         ];
-        let works_data = vec![
+        let works_data = [
             "A".to_string(),
             "B".to_string(),
             "C".to_string(),
@@ -41,7 +41,9 @@ mod tests {
         }
 
         println!("最大マッチング {:?}", mgraph.max_matching());
-
+        for (a, b) in mgraph.max_matching() {
+            println!("{} - {}", staff_data[a].0, works_data[b])
+        }
         println!("{:?}", mgraph.max_matching2())
     }
 
