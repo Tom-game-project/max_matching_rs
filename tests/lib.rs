@@ -9,27 +9,17 @@ mod tests {
         // staff_data.0 => name
         // staff_data.1 => capable
         let staff_data = vec![
-            ("1".to_string(),vec![
-                                    "B".to_string(),
-                                    "D".to_string()
-                                ]),
-            ("2".to_string(),vec![
-                                    "A".to_string(),
-                                    "C".to_string(),
-                                    "E".to_string()
-                                ]),
-            ("3".to_string(),vec![
-                                    "B".to_string()
-                                ]),
-            ("4".to_string(),vec![
-                                    "D".to_string(),
-                                    "E".to_string(),
-                                    "F".to_string()
-                                ]),
-            ("5".to_string(),vec![
-                                    "B".to_string(),
-                                    "D".to_string()
-                                ]),
+            ("1".to_string(), vec!["B".to_string(), "D".to_string()]),
+            (
+                "2".to_string(),
+                vec!["A".to_string(), "C".to_string(), "E".to_string()],
+            ),
+            ("3".to_string(), vec!["B".to_string()]),
+            (
+                "4".to_string(),
+                vec!["D".to_string(), "E".to_string(), "F".to_string()],
+            ),
+            ("5".to_string(), vec!["B".to_string(), "D".to_string()]),
         ];
         let works_data = vec![
             "A".to_string(),
@@ -39,45 +29,27 @@ mod tests {
             "E".to_string(),
             "F".to_string(),
         ];
-        let staff_nodes:Vec<usize> = staff_data
-        .iter()
-        .enumerate()
-        .map(|(i,_)|{
-            i
-        }).collect();
-        let works_nodes:Vec<usize> = works_data
-        .iter()
-        .enumerate()
-        .map(|(i,_)|
-            i
-        ).collect();
+        let staff_nodes: Vec<usize> = staff_data.iter().enumerate().map(|(i, _)| i).collect();
+        let works_nodes: Vec<usize> = works_data.iter().enumerate().map(|(i, _)| i).collect();
         let mut mgraph = MatchingGraph::new(staff_nodes, works_nodes);
 
-        for (i, j) in staff_data.iter().enumerate(){
-            for k in j.1.clone(){
+        for (i, j) in staff_data.iter().enumerate() {
+            for k in j.1.clone() {
                 let indexof = works_data.iter().position(|l| l == &k).unwrap();
                 mgraph.add_side(i, indexof);
             }
         }
 
-        println!(
-            "最大マッチング {:?}",
-            mgraph.max_matching()
-        );
+        println!("最大マッチング {:?}", mgraph.max_matching());
 
-        println!(
-            "{:?}",
-            mgraph.max_matching2()
-        )
-
-    }
-    #[test]
-    fn test1(){
-
+        println!("{:?}", mgraph.max_matching2())
     }
 
     #[test]
-    fn test2(){
+    fn test1() {}
+
+    #[test]
+    fn test2() {
         //変換のテスト
     }
 }
