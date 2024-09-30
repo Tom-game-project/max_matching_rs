@@ -328,21 +328,30 @@ impl MatchingGraph {
         l0b && l1b
     }
 
-    pub fn matching_permutations(&self, arr: Vec<usize>, depth: usize) -> Vec<Vec<usize>> {
-        if arr.len() == 1 {
-            return vec![arr];
-        }
-        let mut rlist = Vec::new();
+    pub fn matching_permutations(&self, arr: &mut [usize]) -> Vec<Vec<usize>> {
+        let mut rlist = vec![];
+        let n = arr.len();
+        let mut c: Vec<usize> = arr.to_owned();
+        c.fill(0); // set all number 0
+        let mut i = 0;
 
-        for i in 0..arr.len() {
-            let current = arr[i];
-            let remaining = [&arr[..i], &arr[i + 1..]].concat();
-
-            for p in self.matching_permutations(remaining, depth) {
-                rlist.push([vec![current], p].concat());
+        rlist.push(arr.to_owned());
+        while i < n {
+            if c[i] < i {
+                if i % 2 == 0 {
+                    (arr[0], arr[i]) = (arr[i], arr[0])
+                } else {
+                    (arr[c[i]], arr[i]) = (arr[i], arr[c[i]]);
+                }
+                rlist.push(arr.to_owned());
+                c[i] += 1;
+                i = 0;
+            } else {
+                c[i] = 0;
+                i += 1;
             }
         }
-        return rlist;
+        rlist
     }
 
     // pub fn all_max_match(&self) -> Vec<Vec<(usize, usize)>> {
@@ -351,3 +360,29 @@ impl MatchingGraph {
 }
 
 //testをスムーズにしたいのでwasm用関数に分割しています
+
+pub fn matching_permutations(arr: &mut [usize]) -> Vec<Vec<usize>> {
+    let mut rlist = vec![];
+    let n = arr.len();
+    let mut c: Vec<usize> = arr.to_owned();
+    c.fill(0); // set all number 0
+    let mut i = 0;
+
+    rlist.push(arr.to_owned());
+    while i < n {
+        if c[i] < i {
+            if i % 2 == 0 {
+                (arr[0], arr[i]) = (arr[i], arr[0])
+            } else {
+                (arr[c[i]], arr[i]) = (arr[i], arr[c[i]]);
+            }
+            rlist.push(arr.to_owned());
+            c[i] += 1;
+            i = 0;
+        } else {
+            c[i] = 0;
+            i += 1;
+        }
+    }
+    rlist
+}

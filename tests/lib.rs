@@ -5,6 +5,7 @@ use utils::utils::matching_permutations;
 #[cfg(test)]
 mod tests {
 
+    use max_matching_rs::matching_permutations;
     use utils::utils::Permutations;
 
     use super::*;
@@ -52,19 +53,28 @@ mod tests {
         println!("{:?}", mgraph.max_matching2())
     }
 
+    // #[test]
+    // fn test1() {
+    //     let arr = vec![0, 1, 2, 3];
+    //     for i in matching_permutations(arr, 0) {
+    //         //pass
+    //         println!("{:?}", i);
+    //     }
+    // }
     #[test]
-    fn test1() {
-        let arr = vec![0, 1, 2, 3];
-        for i in matching_permutations(arr, 0) {
-            //pass
+    fn test2() {
+        //変換のテスト
+        for i in Permutations::new(vec![1, 2, 3, 4]) {
             println!("{:?}", i);
         }
     }
 
     #[test]
-    fn test2() {
-        //変換のテスト
-        for i in Permutations::new(vec![1, 2, 3, 4]) {
+    fn test3() {
+        let mut arr = vec![0, 1, 2];
+        let a = matching_permutations(&mut arr);
+
+        for i in a {
             println!("{:?}", i);
         }
     }
