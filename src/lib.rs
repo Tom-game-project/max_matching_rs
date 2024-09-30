@@ -327,6 +327,27 @@ impl MatchingGraph {
         };
         l0b && l1b
     }
+
+    pub fn matching_permutations(&self, arr: Vec<usize>, depth: usize) -> Vec<Vec<usize>> {
+        if arr.len() == 1 {
+            return vec![arr];
+        }
+        let mut rlist = Vec::new();
+
+        for i in 0..arr.len() {
+            let current = arr[i];
+            let remaining = [&arr[..i], &arr[i + 1..]].concat();
+
+            for p in self.matching_permutations(remaining, depth) {
+                rlist.push([vec![current], p].concat());
+            }
+        }
+        return rlist;
+    }
+
+    // pub fn all_max_match(&self) -> Vec<Vec<(usize, usize)>> {
+    //     let mut rlist = Vec::new();
+    // }
 }
 
 //testをスムーズにしたいのでwasm用関数に分割しています

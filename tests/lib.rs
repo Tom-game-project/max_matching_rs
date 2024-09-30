@@ -1,7 +1,12 @@
 use max_matching_rs::MatchingGraph;
+mod utils;
+use utils::utils::matching_permutations;
 
 #[cfg(test)]
 mod tests {
+
+    use utils::utils::Permutations;
+
     use super::*;
 
     #[test]
@@ -48,10 +53,19 @@ mod tests {
     }
 
     #[test]
-    fn test1() {}
+    fn test1() {
+        let arr = vec![0, 1, 2, 3];
+        for i in matching_permutations(arr, 0) {
+            //pass
+            println!("{:?}", i);
+        }
+    }
 
     #[test]
     fn test2() {
         //変換のテスト
+        for i in Permutations::new(vec![1, 2, 3, 4]) {
+            println!("{:?}", i);
+        }
     }
 }
