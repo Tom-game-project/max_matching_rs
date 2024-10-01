@@ -95,12 +95,6 @@ impl MatchingGraph {
         }
     }
 
-    /// # find_matching_node
-    /// あまり使わないため保留
-    fn find_matching_node(&self, matching: Vec<(usize, usize)>, belonging: bool) -> Vec<usize> {
-        todo!()
-    }
-
     /// # get_incr_roads
     /// 左側にある、まだマッチしていないnodeのidを引数にとります
     /// 増加道かまたは変更可能なノード先を返却します
@@ -328,38 +322,41 @@ impl MatchingGraph {
         l0b && l1b
     }
 
-    pub fn matching_permutations(&self, arr: &mut [usize]) -> Vec<Vec<usize>> {
-        let mut rlist = vec![];
-        let n = arr.len();
-        let mut c: Vec<usize> = arr.to_owned();
-        c.fill(0); // set all number 0
-        let mut i = 0;
+    fn is_valid_permutations(&self, arr: &[usize]) -> bool {
+        true
+    }
 
-        rlist.push(arr.to_owned());
-        while i < n {
-            if c[i] < i {
-                if i % 2 == 0 {
-                    (arr[0], arr[i]) = (arr[i], arr[0])
-                } else {
-                    (arr[c[i]], arr[i]) = (arr[i], arr[c[i]]);
-                }
-                rlist.push(arr.to_owned());
-                c[i] += 1;
-                i = 0;
+    pub fn matching_permutations(&self, n: usize, arr: &mut [usize]) -> Vec<Vec<usize>> {
+        let mut result = Vec::new();
+
+        if n == 1 {
+            if self.is_valid_permutations(arr) {
+                return vec![arr.to_vec()];
             } else {
-                c[i] = 0;
-                i += 1;
+                return vec![];
+            }
+        } else {
+            for i in 0..n {
+                result = [result, self.matching_permutations(n - 1, arr)].concat();
+                if n % 2 == 0 {
+                    // pass
+                    (arr[i], arr[n - 1]) = (arr[n - 1], arr[i]);
+                } else {
+                    // pass
+                    (arr[0], arr[n - 1]) = (arr[n - 1], arr[0]);
+                }
+                if !self.is_valid_permutations(arr) {
+                    continue;
+                }
             }
         }
-        rlist
+        result
     }
 
     // pub fn all_max_match(&self) -> Vec<Vec<(usize, usize)>> {
     //     let mut rlist = Vec::new();
     // }
 }
-
-//testをスムーズにしたいのでwasm用関数に分割しています
 
 pub fn matching_permutations(arr: &mut [usize]) -> Vec<Vec<usize>> {
     let mut rlist = vec![];
